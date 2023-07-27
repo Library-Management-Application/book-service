@@ -41,7 +41,7 @@ public class BookService {
         Author author = null;
         if (bookDto.getAuthor().getId() != null)
             author = authorRepository.findById(bookDto.getAuthor().getId())
-                .orElseThrow(() -> new EntityNotFoundException(bookDto.getAuthor().getId().toString()));
+                    .orElseThrow(() -> new EntityNotFoundException(bookDto.getAuthor().getId().toString()));
         else
         {
             author = authorRepository.findByName(bookDto.getAuthor().getName()).
@@ -74,6 +74,18 @@ public class BookService {
         bookMapper.bookDtoToBook(bookDto, bookFound);
         final Book bookSaved = bookRepository.save(bookFound);
         return bookMapper.bookToBookDto(bookSaved);
+    }
+
+    // Get Quantity At Hand
+    // This is designed to be used by borrowing service
+    public Integer getQuantityAtHand(Long bookId)
+    {
+        Book book = bookRepository.findById(bookId).
+                orElseThrow(() -> new EntityNotFoundException(bookId.toString()));
+
+        // check if we have enough in inventory
+        int currentInventory = book.getQuantity() - book.getQuantityCheckedOut();
+        return currentInventory;
     }
 
     // Update the Quantity At Hand

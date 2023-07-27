@@ -24,9 +24,9 @@ public class BookDto {
     private Category category;
     private String description;
     @NotNull
-    private int quantity;
+    private Integer quantity;
     @NotNull
-    private int quantityCheckedOut;
+    private Integer quantityCheckedOut;
 
     private AuthorDto author;
 

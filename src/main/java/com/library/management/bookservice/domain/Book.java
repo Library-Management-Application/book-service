@@ -3,12 +3,10 @@ package com.library.management.bookservice.domain;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -27,15 +25,12 @@ public class Book {
     private UUID ISBN;
     private Category category;
     private String description;
-    private int quantity;
-    private int quantityCheckedOut;
-
+    private Integer quantity;
+    private Integer quantityCheckedOut;
 
     @ManyToOne
     @JoinColumn(name="author_id", nullable=false)
     private Author author;
-
-
 
     @Version
     private Long version;

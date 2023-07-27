@@ -21,6 +21,12 @@ public class BookController {
         return new ResponseEntity<>(bookService.findBook(bookId), HttpStatus.OK);
     }
 
+    @GetMapping("/quantity-at-hand/{bookId}")
+    public ResponseEntity<Integer> getQuantityAtHand(@PathVariable("bookId") Long bookId)
+    {
+        return new ResponseEntity<>(bookService.getQuantityAtHand(bookId), HttpStatus.OK);
+    }
+
     @PostMapping
     public ResponseEntity<BookDto> addNewBook(@RequestBody @Validated BookDto bookDto)
     {
