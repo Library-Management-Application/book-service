@@ -23,6 +23,7 @@ public class Book {
     @NotNull
     private String title;
     private UUID ISBN;
+    @Enumerated(EnumType.STRING)
     private Category category;
     private String description;
     private Integer quantity;

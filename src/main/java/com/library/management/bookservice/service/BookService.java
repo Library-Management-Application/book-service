@@ -1,7 +1,9 @@
 package com.library.management.bookservice.service;
 
+import com.library.management.bookservice.config.JmsConfig;
 import com.library.management.bookservice.domain.Author;
 import com.library.management.bookservice.domain.Book;
+import com.library.management.bookservice.events.NewBookEvent;
 import com.library.management.bookservice.model.BookDto;
 import com.library.management.bookservice.repo.AuthorRepository;
 import com.library.management.bookservice.repo.BookRepository;
@@ -9,10 +11,18 @@ import com.library.management.bookservice.web.mappers.AuthorMapper;
 import com.library.management.bookservice.web.mappers.BookMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -24,6 +34,8 @@ public class BookService {
     private final AuthorRepository authorRepository;
     private final BookMapper bookMapper;
     private final AuthorMapper authorMapper;
+    private final JmsTemplate jmsTemplate;
+
 
     // Get book details
     public BookDto findBook(Long bookId)
@@ -34,7 +46,7 @@ public class BookService {
     }
 
     // Add new book
-    public BookDto addNewBook(BookDto bookDto)
+    public BookDto addNewBook(final BookDto bookDto)
     {
         final Book book = bookMapper.bookDtoToBook(bookDto);
 
@@ -56,7 +68,12 @@ public class BookService {
         }
         book.setAuthor(author);
         final Book bookSaved = bookRepository.save(book);
-        return bookMapper.bookToBookDto(bookSaved);
+
+        BookDto bookDtoAfterSave = bookMapper.bookToBookDto(bookSaved);
+
+        jmsTemplate.convertAndSend(JmsConfig.NEW_BOOK_ADDED_QUEUE, new NewBookEvent(bookDtoAfterSave));
+
+        return bookDto;
     }
 
     // Update book
@@ -97,7 +114,7 @@ public class BookService {
 
         // check if we have enough in inventory
         validateQuantity(quantityToBorrow, book);
-        int quantityCheckout =  book.getQuantityCheckedOut() + quantityToBorrow;
+        int quantityCheckout = (null == book.getQuantityCheckedOut() ? 0: book.getQuantityCheckedOut()) + quantityToBorrow;
         book.setQuantityCheckedOut(quantityCheckout);
         book = bookRepository.save(book);
         return bookMapper.bookToBookDto(book);
@@ -120,5 +137,19 @@ public class BookService {
             throw new RuntimeException("Book deletion is not allowed since its been checkout by "  + bookFound.getQuantityCheckedOut() + " members");
         }
         bookRepository.delete(bookFound);
+    }
+
+    public List<BookDto> findAllBooks(Integer pageNo, Integer pageSize, String sortBy) {
+        Pageable paging = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+
+        Page<Book> allBooks = bookRepository.findAll(
+                paging);
+
+        if (allBooks.hasContent()) {
+            List<Book> content = allBooks.getContent();
+
+            return content.stream().map(book -> bookMapper.bookToBookDto(book)).collect(Collectors.toList());
+        }
+        return new ArrayList<BookDto>();
     }
 }

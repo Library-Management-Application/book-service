@@ -1,15 +1,12 @@
 package com.library.management.bookservice.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.library.management.bookservice.domain.Book;
 import lombok.*;
 
-import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.time.OffsetDateTime;
 import java.util.Date;
-import java.util.List;
 
 @Getter
 @Setter

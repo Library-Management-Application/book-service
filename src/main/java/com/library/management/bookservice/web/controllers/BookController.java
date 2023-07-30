@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @AllArgsConstructor
 @RequestMapping ("/api/v1/book")
 @RestController
@@ -19,6 +21,16 @@ public class BookController {
     public ResponseEntity<BookDto> getBook(@PathVariable("bookId") Long bookId)
     {
         return new ResponseEntity<>(bookService.findBook(bookId), HttpStatus.OK);
+    }
+    @GetMapping
+    public ResponseEntity<List<BookDto>> getAllBooks(
+            @RequestParam(defaultValue = "0") Integer pageNo,
+            @RequestParam(defaultValue = "5") Integer pageSize,
+            @RequestParam(defaultValue = "id") String sortBy)
+    {
+        List<BookDto> list = bookService.findAllBooks(pageNo, pageSize, sortBy);
+
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
     @GetMapping("/quantity-at-hand/{bookId}")
